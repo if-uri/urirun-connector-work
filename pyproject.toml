@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "urirun-connector-work"
+version = "0.1.0"
+description = "work:// control plane — lock-aware leases so a worker fleet clears the backlog in parallel without conflicts"
+requires-python = ">=3.10"
+dependencies = ["urirun"]
+[project.entry-points."urirun.bindings"]
+work = "urirun_connector_work.core:urirun_bindings"
+[project.scripts]
+urirun-work-koru-shim = "urirun_connector_work.koru_shim:main"
+[tool.setuptools]
+packages = ["urirun_connector_work"]

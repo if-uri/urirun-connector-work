@@ -1,0 +1,5 @@
+sprint:
+  id: sprint-001
+  name: Sprint 1
+  status: active
+  tickets: {}

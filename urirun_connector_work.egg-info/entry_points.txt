@@ -1,0 +1,5 @@
+[console_scripts]
+urirun-work-koru-shim = urirun_connector_work.koru_shim:main
+
+[urirun.bindings]
+work = urirun_connector_work.core:urirun_bindings
