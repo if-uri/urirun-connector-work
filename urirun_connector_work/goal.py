@@ -2013,35 +2013,15 @@ def send_via_kvm(recipient: str, text: str, ticket: str | None = None, node: str
     result.setdefault("failover_triggered", False)
     result.setdefault("teacher_escalated", False)
     result.setdefault("teacher_improvement", None)
-    if not result.get("ok"):
-        try:
-            inq = _node_run(node, "inquiry://host/case/command/create", {
-                "ticket": ticket or "unknown",
-                "symptom": "signal-kvm-send-not-verified",
-                "rootcause": "effect or verify failed after plan",
-                "evidence": {
-                    "sent_verify": result.get("sent_verify"),
-                    "capture": result.get("capture"),
-                    "plan": plan,
-                },
-                "observation": result.get("decision_loop", {}).get("observation") if isinstance(result.get("decision_loop"), dict) else None,
-                "teacher_improvement": result.get("teacher_improvement"),
-            }, timeout=8)
-            print(f"[INQUIRY real] {inq}")
-            refl = _node_run(node, "reflection://host/evaluate", {
-                "ticket": ticket,
-                "outcome": {"success": result.get("ok"), "verified": result.get("verified"), "effect": result.get("effect")},
-                "observation": result.get("decision_loop", {}).get("observation") if isinstance(result.get("decision_loop"), dict) else None,
-                "nextIntent": result.get("decision_loop", {}).get("nextIntent") if isinstance(result.get("decision_loop"), dict) else None,
-            }, timeout=8)
-            print(f"[REFLECTION real] {refl}")
-            result["inquiry"] = inq
-            result["reflection"] = refl
-        except Exception as e:
-            print(f"[CONTINUOUS] real inquiry/reflection call error: {e}")
-    return result
+    if result.get("ok"):
+        return result
 
-    # --- legacy reactive micro-loop below (unreachable when prep uses llm-runtime-loop) ---
+    # The bounded runtime loop did not produce a verified effect. Continue with the
+    # independent executor/twin/teacher recovery chain before emitting a blocker.
+    # This used to sit after an unconditional return and was therefore unreachable.
+    runtime_timeline = list(result.get("timeline") or [])
+
+    # --- reactive recovery loop ---
     diagnose = _node_run(node, "router://host/plan/query/diagnose", {
         "intent": {"id": "signal-send-gui-kvm", "recipient": rec, "ticket": ticket, "node": node},
         "flow": {"task": {"id": "send-signal-desktop"}, "steps": plan},
@@ -2059,7 +2039,7 @@ def send_via_kvm(recipient: str, text: str, ticket: str | None = None, node: str
     # SAME task, continuing the same timeline — it may ground the UI differently and succeed where the
     # primary didn't. Both attempts' outcomes are recorded so _get_best_executor_from_history() accumulates
     # real signal over time instead of staying empty.
-    timeline = []
+    timeline = runtime_timeline
     know = _get_uri_processes_knowledge(node)
 
     def _verify_now() -> bool:

@@ -65,28 +65,7 @@ def test_send_via_kvm_full_escalation_to_teacher(monkeypatch, tmp_path):
             "plan": [{"id": "focus", "uri": f"kvm://{KVM_URI_HOST}/window/command/focus", "payload": {}}],
             "executor_model": "exec-x",
             "executor_twin_model": "twin-x",
-            "failover_triggered": True,
-            "teacher_escalated": True,
-            "teacher_improvement": {
-                "diagnosis": "zle pole",
-                "suggested_uri": f"kvm://{KVM_URI_HOST}/ui/query/locate",
-                "suggested_payload": {},
-                "prompt_improvement": "inny prompt",
-                "needs_new_capability": None,
-            },
         }
-        goal._save_executor_outcome(prep["executor_model"], {
-            "success": False,
-            "verified": False,
-            "validator_pass": False,
-            "time": 0,
-        })
-        goal._save_executor_outcome(prep["executor_twin_model"], {
-            "success": False,
-            "verified": False,
-            "validator_pass": False,
-            "time": 0,
-        })
         return prep
     monkeypatch.setattr(goal, "prepare_and_validate_for_signal_kvm", fake_prepare)
     monkeypatch.setattr(goal, "_llm_model", lambda: "exec-x")
@@ -96,6 +75,11 @@ def test_send_via_kvm_full_escalation_to_teacher(monkeypatch, tmp_path):
     monkeypatch.setattr(goal, "_capture_lowres", lambda *a, **k: ("/tmp/fake-lowres.png", None))
     monkeypatch.setattr(goal, "_capture_quad", lambda *a, **k: ("/tmp/fake-quad.png", None))
     monkeypatch.setattr(goal, "_get_executor_history_path", lambda: tmp_path / "executor_twin_history.jsonl")
+    monkeypatch.setattr(goal, "_send_via_llm_runtime_loop", lambda *a, **k: {
+        "ok": False,
+        "verified": False,
+        "timeline": [{"step": "runtime-loop", "status": "unverified"}],
+    })
     monkeypatch.setenv("SIGNAL_KVM_PREP", "1")
     monkeypatch.setattr(goal, "_ensure_gui_ready_for_signal", lambda *a, **k: {"ok": True, "observe": {}})
     node_calls: list[str] = []
