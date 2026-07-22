@@ -21,17 +21,18 @@ def test_play_audio_remote_uses_detached_shell_not_kvm_type(monkeypatch):
 
 
 def test_ensure_gui_ready_focuses_signal_when_not_visible(monkeypatch):
-    checks = {"n": 0}
+    state = {"alt_tab": False}
     keys_seen: list[str] = []
 
     def fake_node_run(node, uri, payload=None, timeout=15):
         if "desktop/query/list" in uri:
             return {"apps": [{"id": "org.signal.Signal", "name": "Signal"}]}
         if "ui/query/verify" in uri:
-            checks["n"] += 1
-            return {"present": checks["n"] > 8, "via": "tesseract"}
+            return {"present": state["alt_tab"], "via": "tesseract"}
         if "input/command/key" in uri:
-            keys_seen.append((payload or {}).get("keys", ""))
+            keys = (payload or {}).get("keys", "")
+            keys_seen.append(keys)
+            state["alt_tab"] = "alt+Tab" in keys
         return {"ok": True}
 
     monkeypatch.setattr(goal, "_capture_lowres", lambda *a, **k: ("/tmp/o.png", None))

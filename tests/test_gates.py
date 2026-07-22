@@ -16,6 +16,12 @@ def test_human_pypi_in_delegation_becomes_runnable():
     g = gates.runnable_gate(t)
     assert g.get("delegation") == "approve_delegated" and g["runnable"] is True
 
+
+def test_generated_connector_uses_current_organization_scope():
+    t = {"id": "T", "name": "pypi.publish urirun-connector-signal", "labels": []}
+    twin_ticket = gates._twin_ticket(t, gates.action_of_ticket(t))
+    assert twin_ticket["scope"]["org"] == "urirun-connectors"
+
 def test_human_linkedin_stays_blocked():
     t = {"id": "IFURI-174", "name": "[UNLOCK] linkedin.publish post ifURI", "labels": ["unlock", "actor:human"]}
     g = gates.runnable_gate(t)

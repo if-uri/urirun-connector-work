@@ -123,7 +123,10 @@ def _twin_ticket(ticket: dict, action: str) -> dict:
     if m:
         pkg = m.group(1)
     ver = re.search(r"\b(\d+\.\d+\.\d+)\b", blob)
-    scope = {"org": "if-uri", "package": pkg, "version": ver.group(1) if ver else "0.1.0"} if pkg else {}
+    # Generated connectors moved from if-uri to urirun-connectors. Delegation scope must
+    # describe the repository's current owner or a valid publish action is escalated forever.
+    org = "urirun-connectors" if pkg.startswith("urirun-connector-") else "if-uri"
+    scope = {"org": org, "package": pkg, "version": ver.group(1) if ver else "0.1.0"} if pkg else {}
     return {"id": ticket.get("id"), "action": action, "action_uri": ticket.get("action_uri"),
             "risk": "medium", "reversible": "publish" not in action and "delete" not in action,
             "scope": scope, "version": scope.get("version"),
