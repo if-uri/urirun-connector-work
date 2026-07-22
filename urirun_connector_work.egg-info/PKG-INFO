@@ -1,6 +1,7 @@
 Metadata-Version: 2.4
 Name: urirun-connector-work
-Version: 0.1.0
+Version: 0.2.0
 Summary: work:// control plane — lock-aware leases so a worker fleet clears the backlog in parallel without conflicts
 Requires-Python: >=3.10
 Requires-Dist: urirun
+Requires-Dist: urirun-work @ https://github.com/if-uri/urirun-work/archive/refs/tags/v0.2.0.tar.gz

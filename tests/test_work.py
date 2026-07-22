@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import pytest
+from urirun_work.locks import locks_conflict as shared_locks_conflict
 
 from urirun_connector_work import core
 
@@ -18,10 +19,12 @@ def _isolate_store(tmp_path, monkeypatch):
 # ── lock model ────────────────────────────────────────────────────────────────
 
 def test_locks_conflict_ancestor_and_siblings():
+    assert core.locks_conflict is shared_locks_conflict
     assert core.locks_conflict("repo:if-uri/urirun", "path:if-uri/urirun/adapters") is True
     assert core.locks_conflict("path:r/a", "path:r/a") is True
     assert core.locks_conflict("path:r/a", "path:r/b") is False
     assert core.locks_conflict("repo:if-uri/urirun", "repo:if-uri/urirun-flow") is False
+    assert core.locks_conflict("ticket:lenovo", "node:lenovo") is False
 
 
 def test_locks_for_ticket_files_heuristic_and_fallback():

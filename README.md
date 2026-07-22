@@ -20,6 +20,11 @@ Hierarchical resource keys; two locks conflict when one is an **ancestor** of th
 `locks_for_ticket()` derives them: the ticket id + one lock per declared file, or a coarse
 whole-repo lock when no files are declared.
 
+The hierarchy and conflict comparison are provided by
+[`if-uri/urirun-work`](https://github.com/if-uri/urirun-work) v0.2.0. This connector adds
+ticket lock inference, persistent leases and URI routes; it does not duplicate the scheduler's
+resource semantics.
+
 ## Routes
 
 | URI | Purpose |

@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 import urirun
+from urirun_work.locks import locks_conflict
 
 CONNECTOR_ID = "work"
 conn = urirun.connector(CONNECTOR_ID, scheme="work")
@@ -69,20 +70,8 @@ def _fail(msg: str, action: str, **extra: Any) -> dict[str, Any]:
 
 
 # ── lock model ────────────────────────────────────────────────────────────────
-
-def _canon(lock: str) -> list[str]:
-    body = lock.split(":", 1)[1] if ":" in lock else lock
-    return [s for s in body.strip("/").lower().split("/") if s]
-
-
-def locks_conflict(a: str, b: str) -> bool:
-    """Two locks conflict when one is an ancestor of the other (shared resource subtree).
-    Sibling paths (…/a vs …/b) do NOT conflict — that is what lets workers run in parallel."""
-    ca, cb = _canon(a), _canon(b)
-    if not ca or not cb:
-        return False
-    n = min(len(ca), len(cb))
-    return ca[:n] == cb[:n]
+# Conflict semantics come from urirun-work. This connector owns ticket-to-lock
+# inference and durable leases, but deliberately has no second lock comparator.
 
 
 def _heuristic_locks(ticket: dict, repo: str) -> list[str]:
